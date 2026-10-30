@@ -3,231 +3,342 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Go Space Academy - Terminal Interactiva</title>
+    <title>Academia Go Espacial 🚀 - Motor Go Playground</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+
     <style>
-        :root {
-            --bg-color: #0B0C10;
-            --panel-bg: #1F2833;
-            --text-color: #C5C6C7;
-            --primary-color: #00ADD8;
-            --accent-color: #66FCF1;
-            --error-color: #ff7b72;
-            --border-color: #30363d;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
+            font-family: 'Fredoka', sans-serif;
+            background-color: #0b0c10;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(0, 173, 216, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 40%);
+            color: #c5c6c7;
+            overflow-x: hidden;
         }
-
-        .header {
-            text-align: center;
-            margin-bottom: 2rem;
+        .code-font { font-family: 'Fira Code', monospace; }
+        .neon-purple { border: 1px solid rgba(168, 85, 247, 0.5); box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); }
+        .neon-cyan { border: 1px solid rgba(6, 182, 212, 0.5); box-shadow: 0 0 10px rgba(6, 182, 212, 0.2); }
+        #output { white-space: pre-wrap; word-wrap: break-word; }
+        .star { position: absolute; background-color: white; border-radius: 50%; opacity: 0.5; animation: twinkle linear infinite; }
+        @keyframes twinkle {
+            0% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0.2; transform: scale(0.8); }
         }
-
-        .header h1 {
-            color: var(--primary-color);
-            font-size: clamp(2rem, 3vw, 3rem);
-            margin-bottom: 0.5rem;
-        }
-
-        .header p {
-            font-size: 1.05rem;
-            color: #dfe6ee;
-        }
-
-        .terminal-container {
-            display: flex;
-            gap: 2rem;
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        .panel {
-            flex: 1;
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            min-height: 420px;
-        }
-
-        .panel-header {
-            background-color: #000;
-            padding: 0.8rem 1rem;
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: var(--accent-color);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        textarea {
-            width: 100%;
-            height: 420px;
-            background-color: var(--panel-bg);
-            color: #fff;
-            font-family: "Courier New", Courier, monospace;
-            font-size: 1rem;
-            padding: 1rem;
-            border: none;
-            resize: none;
-            outline: none;
-        }
-
-        #output {
-            padding: 1rem;
-            font-family: "Courier New", Courier, monospace;
-            white-space: pre-wrap;
-            height: 420px;
-            overflow-y: auto;
-            color: #a5d6ff;
-            line-height: 1.5;
-        }
-
-        .error-msg {
-            color: var(--error-color);
-        }
-
-        .info-msg {
-            color: #888;
-        }
-
-        .btn-launch {
-            background-color: var(--primary-color);
-            color: #000;
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s ease;
-            font-size: 1rem;
-        }
-
-        .btn-launch:hover {
-            background-color: var(--accent-color);
-        }
-
-        .btn-launch:disabled {
-            background-color: #555;
-            cursor: not-allowed;
-            color: #ddd;
-        }
-
-        @media (max-width: 900px) {
-            .terminal-container {
-                flex-direction: column;
-            }
-        }
+        textarea:focus { outline: none; box-shadow: 0 0 15px rgba(0, 173, 216, 0.3); border-color: #00ADD8; }
+        .err { color: #ff7b72; }
+        .info { color: #888; }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col relative">
 
-    <div class="header">
-        <h1>🚀 Simulador de Vuelo Go</h1>
-        <p>Escribe tu código y envíalo a los servidores de la Tierra para su ejecución.</p>
-    </div>
+    <div id="stars-container" class="fixed inset-0 pointer-events-none z-0"></div>
 
-    <div class="terminal-container">
-        <div class="panel">
-            <div class="panel-header">
-                <span>[ TERMINAL DE COMANDOS ] main.go</span>
-                <button id="runBtn" type="button" class="btn-launch">▶ EJECUTAR</button>
+    <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 px-4 py-3 shadow-lg">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center space-x-3 z-10">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-400 flex items-center justify-center text-white text-xl">
+                    <i class="fa-solid fa-rocket"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-cyan-300">
+                        Academia Go Espacial
+                    </h1>
+                    <p class="text-xs text-slate-400">Motor: Go Playground vía Vercel</p>
+                </div>
             </div>
-            <textarea id="codeEditor" spellcheck="false">package main
-
-import "fmt"
-
-func main() {
-    sistema := "Navegación"
-    estado := "Óptimo"
-
-    fmt.Printf("Sistema de %s: %s\n", sistema, estado)
-    fmt.Println("¡Listo para el despegue!")
-}</textarea>
-        </div>
-
-        <div class="panel">
-            <div class="panel-header">
-                <span>[ RADAR DE SALIDA ] stdout</span>
+            <div class="flex items-center space-x-3 bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700 z-10">
+                <i class="fa-solid fa-star text-amber-400 animate-pulse"></i>
+                <span class="text-sm font-semibold text-slate-200">Misión Actual: <span id="mission-counter" class="text-amber-400">1</span>/4</span>
             </div>
-            <div id="output">Esperando telemetría...</div>
         </div>
-    </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto w-full p-4 md:p-6 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6 z-10 relative">
+
+        <!-- Misiones -->
+        <section class="lg:col-span-4 flex flex-col space-y-4">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <h2 class="text-lg font-bold text-sky-300 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-map-location-dot"></i> Selecciona tu Misión
+                </h2>
+                <div class="space-y-3">
+                    <button type="button" data-mission="1" class="mission-btn w-full text-left p-3 rounded-xl neon-purple bg-slate-800/50 hover:bg-slate-700/80 transition-all flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold">1</div>
+                        <div>
+                            <div class="text-sm font-bold text-slate-200">¡Habla, Computadora!</div>
+                            <div class="text-xs text-slate-400">fmt.Println() y variables</div>
+                        </div>
+                    </button>
+                    <button type="button" data-mission="2" class="mission-btn w-full text-left p-3 rounded-xl neon-cyan bg-slate-800/50 hover:bg-slate-700/80 transition-all flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold">2</div>
+                        <div>
+                            <div class="text-sm font-bold text-slate-200">La Varita Mágica</div>
+                            <div class="text-xs text-slate-400">Escucha con leer()</div>
+                        </div>
+                    </button>
+                    <button type="button" data-mission="3" class="mission-btn w-full text-left p-3 rounded-xl border border-emerald-500/50 shadow-[0_0_10px_rgba(16,185,129,0.2)] bg-slate-800/50 hover:bg-slate-700/80 transition-all flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">3</div>
+                        <div>
+                            <div class="text-sm font-bold text-slate-200">El Portal (Decisiones)</div>
+                            <div class="text-xs text-slate-400">Comandos if / else</div>
+                        </div>
+                    </button>
+                    <button type="button" data-mission="4" class="mission-btn w-full text-left p-3 rounded-xl border border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.2)] bg-slate-800/50 hover:bg-slate-700/80 transition-all flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">4</div>
+                        <div>
+                            <div class="text-sm font-bold text-slate-200">Reto Final</div>
+                            <div class="text-xs text-slate-400">Adivina el número</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Editor y Terminal -->
+        <section class="lg:col-span-8 flex flex-col space-y-4">
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+                <div class="bg-slate-950 px-4 py-2 border-b border-slate-800 flex justify-between items-center">
+                    <span class="text-xs font-mono text-slate-400"><i class="fa-brands fa-golang text-sky-400 mr-1"></i> main.go</span>
+                </div>
+                <textarea id="yourcode" class="w-full h-64 bg-[#1e1e24] text-slate-200 code-font text-sm p-4 resize-none border-b border-slate-800" spellcheck="false"></textarea>
+                <div class="bg-slate-900 p-3 flex justify-end">
+                    <button id="runBtn" type="button" class="px-6 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:bg-slate-600 text-slate-950 font-bold text-sm shadow-[0_0_15px_rgba(0,173,216,0.4)] flex items-center gap-2 transition-transform active:scale-95">
+                        <i class="fa-solid fa-play"></i> ¡Ejecutar Misión!
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-black border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex-grow flex flex-col min-h-[250px] relative">
+                <div class="bg-slate-900 px-4 py-2 border-b border-slate-800 text-xs text-slate-400 font-mono flex items-center gap-2">
+                    <i class="fa-solid fa-terminal"></i> Terminal del Sistema
+                </div>
+                <pre id="output" class="p-4 text-emerald-400 code-font text-sm flex-grow overflow-y-auto m-0"></pre>
+
+                <div id="input-container" class="hidden absolute bottom-0 left-0 w-full bg-slate-900/95 border-t border-cyan-500 p-3 flex flex-col sm:flex-row items-center gap-3 shadow-[0_-10px_20px_rgba(0,0,0,0.5)]">
+                    <span id="prompt-text" class="text-cyan-300 font-bold text-sm code-font shrink-0"></span>
+                    <input type="text" id="userInput" class="flex-grow w-full bg-black border border-cyan-500/50 rounded px-3 py-2 text-white code-font focus:outline-none focus:border-cyan-400" placeholder="Escribe aquí...">
+                    <button id="submitBtn" type="button" class="w-full sm:w-auto px-5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded shadow-lg transition-colors">
+                        Enviar
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
 
     <script>
-        // Ruta relativa: funciona con cualquier dominio de Vercel (go-simulator.vercel.app)
-        const PROXY_URL = "/api/compile";
+        const API_URL = "https://go-simulator.vercel.app/api/compile";
 
-        const outputDiv = document.getElementById("output");
-        const runBtn = document.getElementById("runBtn");
-        const codeEditor = document.getElementById("codeEditor");
+        // Misiones (equivalentes a la versión Python)
+        const missions = {
+            1: [
+                'package main',
+                '',
+                'import "fmt"',
+                '',
+                'func main() {',
+                '\tfmt.Println("Hola, superhéroe!")',
+                '\tnombre := "Matías"',
+                '\tfmt.Println("Hola " + nombre)',
+                '}'
+            ].join("\n"),
+            2: [
+                'package main',
+                '',
+                'import "fmt"',
+                '',
+                'func main() {',
+                '\tcolor := leer("¿Cuál es tu color favorito? ")',
+                '\tfmt.Println("¡Rayo de luz " + color + "!")',
+                '}'
+            ].join("\n"),
+            3: [
+                'package main',
+                '',
+                'import "fmt"',
+                '',
+                'func main() {',
+                '\trespuesta := leer("¿Qué número sigue después del 10? ")',
+                '\tif respuesta == "11" {',
+                '\t\tfmt.Println("¡Correcto!")',
+                '\t} else {',
+                '\t\tfmt.Println("¡Incorrecto!")',
+                '\t}',
+                '}'
+            ].join("\n"),
+            4: [
+                'package main',
+                '',
+                'import "fmt"',
+                '',
+                'func main() {',
+                '\tsecreto := "7"',
+                '\tintento := leer("Adivina el número (1-10): ")',
+                '\tif intento == secreto {',
+                '\t\tfmt.Println("¡Ganaste!")',
+                '\t} else {',
+                '\t\tfmt.Println("¡Casi! Era el 7.")',
+                '\t}',
+                '}'
+            ].join("\n")
+        };
 
-        function showMessage(text, className) {
-            const span = document.createElement("span");
-            if (className) span.className = className;
-            span.textContent = text;
-            outputDiv.appendChild(span);
-        }
+        const $ = id => document.getElementById(id);
+        let resolveInput = null;
+        let runToken = 0;
 
-        async function runGoCode() {
-            const code = codeEditor.value;
-
-            outputDiv.textContent = "";
-            showMessage("Estableciendo conexión con la Tierra... compilando...", "info-msg");
-            runBtn.disabled = true;
-
-            try {
-                const response = await fetch(PROXY_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ code })
-                });
-
-                if (!response.ok) {
-                    throw new Error("Error del backend (HTTP " + response.status + ")");
-                }
-
-                const data = await response.json();
-                outputDiv.textContent = "";
-
-                if (data.Errors) {
-                    showMessage("⚠️ Falla en el sistema (Error de Compilación):\n\n" + data.Errors, "error-msg");
-                } else if (data.Events && data.Events.length > 0) {
-                    data.Events.forEach(event => {
-                        showMessage(event.Message, event.Kind === "stderr" ? "error-msg" : "");
-                    });
-                } else {
-                    showMessage("El programa finalizó sin imprimir datos.", "info-msg");
-                }
-            } catch (error) {
-                console.error(error);
-                outputDiv.textContent = "";
-                showMessage("❌ Error de conexión o compilación.\n\n" + error.message +
-                            "\n\nRevisa los Logs del proyecto en Vercel.", "error-msg");
-            } finally {
-                runBtn.disabled = false;
+        function createStars() {
+            const container = $("stars-container");
+            for (let i = 0; i < 30; i++) {
+                const star = document.createElement("div");
+                star.className = "star";
+                const size = Math.random() * 3 + "px";
+                star.style.width = size;
+                star.style.height = size;
+                star.style.left = Math.random() * 100 + "vw";
+                star.style.top = Math.random() * 100 + "vh";
+                star.style.animationDuration = (Math.random() * 3 + 2) + "s";
+                star.style.animationDelay = Math.random() * 2 + "s";
+                container.appendChild(star);
             }
         }
 
-        runBtn.addEventListener("click", runGoCode);
+        function outf(text, cls) {
+            const span = document.createElement("span");
+            if (cls) span.className = cls;
+            span.textContent = text;
+            $("output").appendChild(span);
+            $("output").scrollTop = $("output").scrollHeight;
+        }
+
+        function hideInputUI() {
+            $("input-container").classList.add("hidden");
+            resolveInput = null;
+        }
+
+        function loadMission(num) {
+            runToken++;
+            hideInputUI();
+            $("yourcode").value = missions[num];
+            $("mission-counter").textContent = num;
+            $("output").textContent = "";
+            outf("Sistema listo. Código de misión " + num + " cargado.\nPresiona \"¡Ejecutar Misión!\" para comenzar.\n\n", "info");
+            $("runBtn").disabled = false;
+        }
+
+        // Muestra la barra de entrada y espera la respuesta
+        function askInput(prompt) {
+            return new Promise(resolve => {
+                outf(prompt);
+                $("prompt-text").textContent = "Entrada requerida:";
+                $("userInput").value = "";
+                $("input-container").classList.remove("hidden");
+                $("userInput").focus();
+                resolveInput = () => {
+                    const val = $("userInput").value;
+                    hideInputUI();
+                    outf(val + "\n");
+                    resolve(val);
+                };
+            });
+        }
+
+        function submitInput() {
+            if (resolveInput) resolveInput();
+        }
+
+        // Agrega la función leer() al código Go con las respuestas ya capturadas
+        function injectInputs(code, answers) {
+            const list = answers.map(a => JSON.stringify(a)).join(", ");
+            return code + "\n\n" +
+                "var __entradas = []string{" + list + "}\n" +
+                "var __idx = 0\n\n" +
+                "func leer(pregunta string) string {\n" +
+                "\tfmt.Print(pregunta)\n" +
+                "\tv := \"\"\n" +
+                "\tif __idx < len(__entradas) {\n" +
+                "\t\tv = __entradas[__idx]\n" +
+                "\t\t__idx++\n" +
+                "\t}\n" +
+                "\tfmt.Println(v)\n" +
+                "\treturn v\n" +
+                "}\n";
+        }
+
+        async function runit() {
+            const myToken = ++runToken;
+            const code = $("yourcode").value;
+            $("output").textContent = "";
+            $("runBtn").disabled = true;
+
+            try {
+                // 1. Pedir las entradas de cada leer("...")
+                const prompts = [...code.matchAll(/leer\(\s*"((?:[^"\\]|\\.)*)"\s*\)/g)]
+                    .map(m => m[1].replace(/\\n/g, "\n").replace(/\\"/g, '"'));
+                const answers = [];
+                if (prompts.length > 0) {
+                    outf("📡 La nave necesita tus datos antes del despegue:\n\n", "info");
+                    for (const p of prompts) {
+                        const a = await askInput(p);
+                        if (myToken !== runToken) return;
+                        answers.push(a);
+                    }
+                    outf("\n", "");
+                }
+
+                // 2. Compilar y ejecutar
+                outf("Estableciendo conexión con la Tierra... compilando...\n", "info");
+                const finalCode = prompts.length > 0 ? injectInputs(code, answers) : code;
+
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ code: finalCode })
+                });
+                if (myToken !== runToken) return;
+                if (!response.ok) throw new Error("HTTP " + response.status);
+
+                const data = await response.json();
+                $("output").textContent = "";
+
+                if (data.Errors) {
+                    outf("❌ ERROR de compilación:\n\n" + data.Errors, "err");
+                    return;
+                }
+
+                // Ocultar el eco de leer(): ya se mostró en las respuestas
+                (data.Events || []).forEach(e => {
+                    outf(e.Message, e.Kind === "stderr" ? "err" : "");
+                });
+                outf("\n\n[=== Programa Terminado con Éxito ===]", "info");
+            } catch (err) {
+                console.error(err);
+                outf("\n\n❌ ERROR de conexión: " + err.message, "err");
+            } finally {
+                if (myToken === runToken) $("runBtn").disabled = false;
+            }
+        }
+
+        // Eventos
+        document.querySelectorAll(".mission-btn").forEach(btn => {
+            btn.addEventListener("click", () => loadMission(Number(btn.dataset.mission)));
+        });
+        $("runBtn").addEventListener("click", runit);
+        $("submitBtn").addEventListener("click", submitInput);
+        $("userInput").addEventListener("keydown", e => {
+            if (e.key === "Enter") { e.preventDefault(); submitInput(); }
+        });
+
+        window.addEventListener("load", () => {
+            createStars();
+            loadMission(1);
+        });
     </script>
 </body>
 </html>
