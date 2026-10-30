@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go Space Academy - Terminal Interactiva</title>
+    <style>
+        :root {
+            --bg-color: #0B0C10;
+            --panel-bg: #1F2833;
+            --text-color: #C5C6C7;
+            --primary-color: #00ADD8; /* Go Blue */
+            --accent-color: #66FCF1;
+            --error-color: #ff7b72;
+            --border-color: #30363d;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 { color: var(--primary-color); }
+
+        .terminal-container {
+            display: flex;
+            gap: 2rem;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .panel {
+            flex: 1;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background-color: #000;
+            padding: 0.8rem 1rem;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Editor de código */
+        textarea {
+            width: 100%;
+            height: 400px;
+            background-color: var(--panel-bg);
+            color: #fff;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1rem;
+            padding: 1rem;
+            border: none;
+            resize: none;
+            outline: none;
+        }
+
+        /* Pantalla de salida */
+        #output {
+            padding: 1rem;
+            font-family: "Courier New", Courier, monospace;
+            white-space: pre-wrap;
+            height: 400px;
+            overflow-y: auto;
+            color: #a5d6ff;
+        }
+
+        .error-msg { color: var(--error-color); }
+
+        .btn-launch {
+            background-color: var(--primary-color);
+            color: #000;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-launch:hover { background-color: var(--accent-color); }
+        .btn-launch:disabled { background-color: #555; cursor: not-allowed; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🚀 Simulador de Vuelo Go</h1>
+        <p>Escribe tu código y envíalo a los servidores de la Tierra para su ejecución.</p>
+    </div>
+
+    <div class="terminal-container">
+        <!-- Panel Izquierdo: Editor de Código -->
+        <div class="panel">
+            <div class="panel-header">
+                <span>[ TERMINAL DE COMANDOS ] main.go</span>
+                <button id="runBtn" class="btn-launch" onclick="runGoCode()">▶ EJECUTAR</button>
+            </div>
+            <textarea id="codeEditor" spellcheck="false">package main
+
+import "fmt"
+
+func main() {
+    sistema := "Navegación"
+    estado := "Óptimo"
+    
+    fmt.Printf("Sistema de %s: %s\n", sistema, estado)
+    fmt.Println("¡Listo para el despegue!")
+}</textarea>
+        </div>
+
+        <!-- Panel Derecho: Salida de Consola -->
+        <div class="panel">
+            <div class="panel-header">
+                <span>[ RADAR DE SALIDA ] stdout</span>
+            </div>
+            <div id="output">Esperando telemetría...</div>
+        </div>
+    </div>
+
+    <script>
+        async function runGoCode() {
+            const code = document.getElementById('codeEditor').value;
+            const outputDiv = document.getElementById('output');
+            const runBtn = document.getElementById('runBtn');
+
+            // Estado de carga
+            outputDiv.innerHTML = "<span style='color: #888;'>Estableciendo conexión con la Tierra... compilando...</span>";
+            runBtn.disabled = true;
+
+            try {
+                // Llamada a la API oficial de Go Playground
+                const response = await fetch('https://go.dev/_/compile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    // La API espera la versión y el cuerpo del código
+                    body: new URLSearchParams({
+                        version: 2,
+                        body: code,
+                        withVet: true
+                    })
+                });
+
+                const data = await response.json();
+
+                // Limpiar salida
+                outputDiv.innerHTML = '';
+
+                // Procesar errores de compilación si existen
+                if (data.Errors) {
+                    outputDiv.innerHTML = `<span class="error-msg">⚠️ Falla en el sistema (Error de Compilación):\n\n${data.Errors}</span>`;
+                } 
+                // Procesar la salida estándar (Eventos)
+                else if (data.Events && data.Events.length > 0) {
+                    data.Events.forEach(event => {
+                        const span = document.createElement('span');
+                        // Si es un error de ejecución en tiempo real (stderr)
+                        if (event.Kind === 'stderr') {
+                            span.className = 'error-msg';
+                        }
+                        span.textContent = event.Message;
+                        outputDiv.appendChild(span);
+                    });
+                } else {
+                    outputDiv.innerHTML = "<span style='color: #888;'>El programa finalizó sin imprimir datos.</span>";
+                }
+            } catch (error) {
+                outputDiv.innerHTML = `<span class="error-msg">❌ Error de conexión: No se pudo contactar al servidor.</span>`;
+            } finally {
+                runBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
