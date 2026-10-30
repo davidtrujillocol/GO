@@ -24,6 +24,7 @@
         .code-font { font-family: 'Fira Code', monospace; }
         .neon-purple { border: 1px solid rgba(168, 85, 247, 0.5); box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); }
         .neon-cyan { border: 1px solid rgba(6, 182, 212, 0.5); box-shadow: 0 0 10px rgba(6, 182, 212, 0.2); }
+        .neon-pink { border: 1px solid rgba(236, 72, 153, 0.5); box-shadow: 0 0 10px rgba(236, 72, 153, 0.2); }
         #output { white-space: pre-wrap; word-wrap: break-word; }
         .star { position: absolute; background-color: white; border-radius: 50%; opacity: 0.5; animation: twinkle linear infinite; }
         @keyframes twinkle {
@@ -55,7 +56,7 @@
             </div>
             <div class="flex items-center space-x-3 bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700 z-10">
                 <i class="fa-solid fa-star text-amber-400 animate-pulse"></i>
-                <span class="text-sm font-semibold text-slate-200">Misión Actual: <span id="mission-counter" class="text-amber-400">1</span>/4</span>
+                <span class="text-sm font-semibold text-slate-200">Misión Actual: <span id="mission-counter" class="text-amber-400">1</span>/5</span>
             </div>
         </div>
     </header>
@@ -97,6 +98,13 @@
                             <div class="text-xs text-slate-400">Adivina el número</div>
                         </div>
                     </button>
+                    <button type="button" data-mission="5" class="mission-btn w-full text-left p-3 rounded-xl neon-pink bg-slate-800/50 hover:bg-slate-700/80 transition-all flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-pink-500/20 text-pink-400 flex items-center justify-center font-bold">5</div>
+                        <div>
+                            <div class="text-sm font-bold text-slate-200">Calculadora</div>
+                            <div class="text-xs text-slate-400">+ - * / % residuo y comparar (== &gt; &lt;)</div>
+                        </div>
+                    </button>
                 </div>
             </div>
         </section>
@@ -107,7 +115,7 @@
                 <div class="bg-slate-950 px-4 py-2 border-b border-slate-800 flex justify-between items-center">
                     <span class="text-xs font-mono text-slate-400"><i class="fa-brands fa-golang text-sky-400 mr-1"></i> main.go</span>
                 </div>
-                <textarea id="yourcode" class="w-full h-64 bg-[#1e1e24] text-slate-200 code-font text-sm p-4 resize-none border-b border-slate-800" spellcheck="false"></textarea>
+                <textarea id="yourcode" class="w-full h-80 bg-[#1e1e24] text-slate-200 code-font text-sm p-4 resize-y border-b border-slate-800" spellcheck="false"></textarea>
                 <div class="bg-slate-900 p-3 flex justify-end">
                     <button id="runBtn" type="button" class="px-6 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:bg-slate-600 text-slate-950 font-bold text-sm shadow-[0_0_15px_rgba(0,173,216,0.4)] flex items-center gap-2 transition-transform active:scale-95">
                         <i class="fa-solid fa-play"></i> ¡Ejecutar Misión!
@@ -119,7 +127,7 @@
                 <div class="bg-slate-900 px-4 py-2 border-b border-slate-800 text-xs text-slate-400 font-mono flex items-center gap-2">
                     <i class="fa-solid fa-terminal"></i> Terminal del Sistema
                 </div>
-                <pre id="output" class="p-4 text-emerald-400 code-font text-sm flex-grow overflow-y-auto m-0"></pre>
+                <pre id="output" class="p-4 pb-24 text-emerald-400 code-font text-sm flex-grow overflow-y-auto m-0"></pre>
 
                 <div id="input-container" class="hidden absolute bottom-0 left-0 w-full bg-slate-900/95 border-t border-cyan-500 p-3 flex flex-col sm:flex-row items-center gap-3 shadow-[0_-10px_20px_rgba(0,0,0,0.5)]">
                     <span id="prompt-text" class="text-cyan-300 font-bold text-sm code-font shrink-0"></span>
@@ -135,7 +143,6 @@
     <script>
         const API_URL = "https://go-simulator.vercel.app/api/compile";
 
-        // Misiones (equivalentes a la versión Python)
         const missions = {
             1: [
                 'package main',
@@ -186,6 +193,69 @@
                 '\t\tfmt.Println("¡Casi! Era el 7.")',
                 '\t}',
                 '}'
+            ].join("\n"),
+            5: [
+                'package main',
+                '',
+                'import (',
+                '\t"fmt"',
+                '\t"math"',
+                '\t"strconv"',
+                '\t"strings"',
+                ')',
+                '',
+                '// num muestra el número sin ".0" cuando es entero',
+                'func num(x float64) string {',
+                '\treturn strconv.FormatFloat(x, \'f\', -1, 64)',
+                '}',
+                '',
+                'func main() {',
+                '\tfmt.Println("🧮 Calculadora Espacial")',
+                '',
+                '\ta, err1 := strconv.ParseFloat(strings.TrimSpace(leer("Ingresa el primer número: ")), 64)',
+                '\tb, err2 := strconv.ParseFloat(strings.TrimSpace(leer("Ingresa el segundo número: ")), 64)',
+                '\top := strings.TrimSpace(leer("¿Qué quieres hacer? ( +  -  *  /  %  residuo  ==  >  <  comparar ): "))',
+                '',
+                '\tif err1 != nil || err2 != nil {',
+                '\t\tfmt.Println("¡Alerta! Debes ingresar números válidos")',
+                '\t\treturn',
+                '\t}',
+                '',
+                '\tswitch op {',
+                '\tcase "+":',
+                '\t\tfmt.Println(num(a) + " + " + num(b) + " = " + num(a+b))',
+                '\tcase "-":',
+                '\t\tfmt.Println(num(a) + " - " + num(b) + " = " + num(a-b))',
+                '\tcase "*":',
+                '\t\tfmt.Println(num(a) + " * " + num(b) + " = " + num(a*b))',
+                '\tcase "/":',
+                '\t\tif b == 0 {',
+                '\t\t\tfmt.Println("¡Alerta! No se puede dividir entre 0")',
+                '\t\t} else {',
+                '\t\t\tfmt.Println(num(a) + " / " + num(b) + " = " + num(a/b))',
+                '\t\t}',
+                '\tcase "%":',
+                '\t\tfmt.Println(num(a) + "% de " + num(b) + " es igual " + num(a*b/100))',
+                '\tcase "residuo":',
+                '\t\tif b == 0 {',
+                '\t\t\tfmt.Println("¡Alerta! No se puede sacar residuo entre 0")',
+                '\t\t} else {',
+                '\t\t\tfmt.Println("Residuo de " + num(a) + " / " + num(b) + " = " + num(math.Mod(a, b)))',
+                '\t\t}',
+                '\tcase "==":',
+                '\t\tfmt.Println(num(a) + " == " + num(b) + " -> " + fmt.Sprint(a == b))',
+                '\tcase ">":',
+                '\t\tfmt.Println(num(a) + " > " + num(b) + " -> " + fmt.Sprint(a > b))',
+                '\tcase "<":',
+                '\t\tfmt.Println(num(a) + " < " + num(b) + " -> " + fmt.Sprint(a < b))',
+                '\tcase "comparar":',
+                '\t\tfmt.Println(num(a) + " == " + num(b) + " -> " + fmt.Sprint(a == b))',
+                '\t\tfmt.Println(num(a) + " > " + num(b) + " -> " + fmt.Sprint(a > b))',
+                '\t\tfmt.Println(num(a) + " < " + num(b) + " -> " + fmt.Sprint(a < b))',
+                '\tdefault:',
+                '\t\tfmt.Println("Operación no válida. Usa: + - * / % residuo == > < comparar")',
+                '\t}',
+                '}'
             ].join("\n")
         };
 
@@ -232,7 +302,6 @@
             $("runBtn").disabled = false;
         }
 
-        // Muestra la barra de entrada y espera la respuesta
         function askInput(prompt) {
             return new Promise(resolve => {
                 outf(prompt);
@@ -312,7 +381,6 @@
                     return;
                 }
 
-                // Ocultar el eco de leer(): ya se mostró en las respuestas
                 (data.Events || []).forEach(e => {
                     outf(e.Message, e.Kind === "stderr" ? "err" : "");
                 });
@@ -325,7 +393,6 @@
             }
         }
 
-        // Eventos
         document.querySelectorAll(".mission-btn").forEach(btn => {
             btn.addEventListener("click", () => loadMission(Number(btn.dataset.mission)));
         });
